@@ -1,6 +1,6 @@
 # pip install timm
 from PIL import Image
-import cv2
+# import cv2 as cv
 import numpy as np
 import torch
 from transformers import DetrForSegmentation, DetrFeatureExtractor
@@ -67,7 +67,8 @@ def change_bg(image, bg_image, model, feature_extractor):
 
     return image
 
-if __name__ == "__main__":
+
+def main(image):
     IMG_WIDTH_DEEPDREAM = 1000
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
@@ -80,8 +81,13 @@ if __name__ == "__main__":
 
     if output_nparray.dtype != np.uint8:
         output_nparray = (output_nparray*255).astype(np.uint8)
-    cv2.imwrite(os.path.join(OUTPUT_DIR, 'final_output.jpg'), output_nparray[:, :, ::-1])
+    # cv.imwrite(os.path.join(OUTPUT_DIR, 'final_output.jpg'), output_nparray[:, :, ::-1])
+
+    # return Image.open(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
 
 
     # output_nparray_uint8 = output_nparray.astype(np.uint8)
     # Image.fromarray(output_nparray_uint8).save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
+
+if __name__ == "__main__":
+    main(image)
