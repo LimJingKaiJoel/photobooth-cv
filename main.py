@@ -1,12 +1,15 @@
 # pip install timm
 from PIL import Image
+import cv2
 import numpy as np
 import torch
 from transformers import DetrForSegmentation, DetrFeatureExtractor
 import io
 import os
 from transformers.models.detr.feature_extraction_detr import rgb_to_id
+from pytorch_deepdream import deepdream
 
+OUTPUT_DIR = 'output/'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # preload model before calling function
@@ -58,15 +61,27 @@ def change_bg(image, bg_image, model, feature_extractor):
     image, bg_image = np.array(image), np.array(bg_image)
     image[seg_bg] = bg_image[seg_bg]
 
-    output_dir = 'output/'
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    Image.fromarray(image).save(os.path.join(output_dir , 'output.jpg'))
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
+    Image.fromarray(image).save(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'))
 
     return image
 
-# def deepdream(image):
-
-
 if __name__ == "__main__":
+    IMG_WIDTH_DEEPDREAM = 1000
+    NUM_ITERS_DEEPDREAM = 2
+    LR_DEEPDREAM = 0.09
+
     bg_replaced_image = change_bg(image, bg_image, model, feature_extractor)
+    # bg_replaced_image_nparray = np.array(bg_replaced_image)
+
+    output_nparray = deepdream.change_to_deepdream(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'), IMG_WIDTH_DEEPDREAM, NUM_ITERS_DEEPDREAM, LR_DEEPDREAM)
+
+
+    if output_nparray.dtype != np.uint8:
+        output_nparray = (output_nparray*255).astype(np.uint8)
+    cv2.imwrite(os.path.join(OUTPUT_DIR, 'final_output.jpg'), output_nparray[:, :, ::-1])
+
+
+    # output_nparray_uint8 = output_nparray.astype(np.uint8)
+    # Image.fromarray(output_nparray_uint8).save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
