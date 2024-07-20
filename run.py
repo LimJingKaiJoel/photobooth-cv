@@ -1,6 +1,6 @@
 # pip install timm
 from PIL import Image
-# import cv2 as cv
+import cv2 as cv
 import numpy as np
 import torch
 from transformers import DetrForSegmentation, DetrFeatureExtractor
@@ -61,9 +61,9 @@ def change_bg(image, bg_image, model, feature_extractor):
     image, bg_image = np.array(image), np.array(bg_image)
     image[seg_bg] = bg_image[seg_bg]
 
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-    Image.fromarray(image).save(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'))
+    # if not os.path.exists(OUTPUT_DIR):
+    #     os.makedirs(OUTPUT_DIR)
+    # Image.fromarray(image).save(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'))
 
     return image
 
@@ -73,11 +73,11 @@ def main(image):
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
 
-    bg_replaced_image = change_bg(image, bg_image, model, feature_extractor)
-    # bg_replaced_image_nparray = np.array(bg_replaced_image)
+    bg_replaced_image_nparray = change_bg(image, bg_image, model, feature_extractor)
+    bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
+    bg_replaced_image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
 
     output_nparray = deepdream.change_to_deepdream(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'), IMG_WIDTH_DEEPDREAM, NUM_ITERS_DEEPDREAM, LR_DEEPDREAM)
-
 
     if output_nparray.dtype != np.uint8:
         output_nparray = (output_nparray*255).astype(np.uint8)
@@ -85,9 +85,11 @@ def main(image):
 
     # return Image.open(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
 
-
-    # output_nparray_uint8 = output_nparray.astype(np.uint8)
-    # Image.fromarray(output_nparray_uint8).save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
+    # to return an image:
+    output_nparray_uint8 = output_nparray.astype(np.uint8)
+    res = Image.fromarray(output_nparray_uint8)
+    res.save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
+    return res
 
 if __name__ == "__main__":
     main(image)

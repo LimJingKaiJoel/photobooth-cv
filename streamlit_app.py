@@ -1,7 +1,6 @@
 import streamlit as st
 from PIL import Image
 import run
-import cv2
 
 # Set up the title and description
 st.title("Image Background Change and Style Transform")
@@ -17,15 +16,13 @@ if uploaded_file is not None:
     
     # Display the uploaded image
     st.image(image, caption='Uploaded Image', use_column_width=True)
+    st.write("Image uploaded successfully!")
     
     # Store the image in a variable
     uploaded_image = image
-    
-    st.write("Image uploaded successfully!")
 
     final_img = run.main(uploaded_image)
     st.image(final_img, caption='Final Image', use_column_width=True)
-
 
 
 
