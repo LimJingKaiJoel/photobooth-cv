@@ -17,15 +17,14 @@ feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-5
 model = DetrForSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
 model = model.to(device)
 
-# input on streamlit
+# input on streamlit, these 6 lines of code are not necessary for streamlit app
+# only change if you want to run it locally (python3 run.py)
 input_img = 'zane_test.jpg'
 input_bg = 'rome.jpg'
-
-input_img_dir = 'input_images/'
-input_bg_dir = 'background_images/'
-
-image = Image.open(os.path.join(input_img_dir, input_img))
-bg_image = Image.open(os.path.join(input_bg_dir, input_bg))
+INPUT_IMG_DIR = 'input_images/'
+INPUT_BG_DIR = 'background_images/'
+image = Image.open(os.path.join(INPUT_IMG_DIR, input_img))
+bg_image = Image.open(os.path.join(INPUT_BG_DIR, input_bg))
 
 def change_bg(image, bg_image, model, feature_extractor):
     # prepare image for the model
@@ -68,12 +67,12 @@ def change_bg(image, bg_image, model, feature_extractor):
     return image
 
 
-def main(image):
+def main(image, background_image):
     IMG_WIDTH_DEEPDREAM = 1000
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
 
-    bg_replaced_image_nparray = change_bg(image, bg_image, model, feature_extractor)
+    bg_replaced_image_nparray = change_bg(image, background_image, model, feature_extractor)
     bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
     bg_replaced_image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
 
@@ -92,4 +91,4 @@ def main(image):
     return res
 
 if __name__ == "__main__":
-    main(image)
+    main(image, bg_image)
