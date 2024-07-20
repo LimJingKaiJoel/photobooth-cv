@@ -1,6 +1,6 @@
 # pip install timm
 from PIL import Image
-import cv2
+import cv2 as cv
 import numpy as np
 import torch
 from transformers import DetrForSegmentation, DetrFeatureExtractor
@@ -17,15 +17,14 @@ feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-5
 model = DetrForSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
 model = model.to(device)
 
-# input on streamlit
+# input on streamlit, these 6 lines of code are not necessary for streamlit app
+# only change if you want to run it locally (python3 run.py)
 input_img = 'zane_test.jpg'
 input_bg = 'rome.jpg'
-
-input_img_dir = 'input_images/'
-input_bg_dir = 'background_images/'
-
-image = Image.open(os.path.join(input_img_dir, input_img))
-bg_image = Image.open(os.path.join(input_bg_dir, input_bg))
+INPUT_IMG_DIR = 'input_images/'
+INPUT_BG_DIR = 'background_images/'
+image = Image.open(os.path.join(INPUT_IMG_DIR, input_img))
+bg_image = Image.open(os.path.join(INPUT_BG_DIR, input_bg))
 
 def change_bg(image, bg_image, model, feature_extractor):
     # prepare image for the model
@@ -61,27 +60,35 @@ def change_bg(image, bg_image, model, feature_extractor):
     image, bg_image = np.array(image), np.array(bg_image)
     image[seg_bg] = bg_image[seg_bg]
 
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-    Image.fromarray(image).save(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'))
+    # if not os.path.exists(OUTPUT_DIR):
+    #     os.makedirs(OUTPUT_DIR)
+    # Image.fromarray(image).save(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'))
 
     return image
 
-if __name__ == "__main__":
+
+def main(image, background_image):
     IMG_WIDTH_DEEPDREAM = 1000
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
 
-    bg_replaced_image = change_bg(image, bg_image, model, feature_extractor)
-    # bg_replaced_image_nparray = np.array(bg_replaced_image)
+    bg_replaced_image_nparray = change_bg(image, background_image, model, feature_extractor)
+    bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
+    bg_replaced_image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
 
     output_nparray = deepdream.change_to_deepdream(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'), IMG_WIDTH_DEEPDREAM, NUM_ITERS_DEEPDREAM, LR_DEEPDREAM)
 
-
     if output_nparray.dtype != np.uint8:
         output_nparray = (output_nparray*255).astype(np.uint8)
-    cv2.imwrite(os.path.join(OUTPUT_DIR, 'final_output.jpg'), output_nparray[:, :, ::-1])
+    # cv.imwrite(os.path.join(OUTPUT_DIR, 'final_output.jpg'), output_nparray[:, :, ::-1])
 
+    # return Image.open(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
 
-    # output_nparray_uint8 = output_nparray.astype(np.uint8)
-    # Image.fromarray(output_nparray_uint8).save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
+    # to return an image:
+    output_nparray_uint8 = output_nparray.astype(np.uint8)
+    res = Image.fromarray(output_nparray_uint8)
+    res.save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
+    return res
+
+if __name__ == "__main__":
+    main(image, bg_image)
