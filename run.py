@@ -85,16 +85,45 @@ def change_bg(image, bg_image):
 
     return image
 
+def resize_bg_image(image, bg_image):    # Get the dimensions of the input image
+    # Check if the image is portrait or landscape
+    if image.height > image.width:
+        # Image is portrait, resize the background image vertically
+        bg_aspect_ratio = bg_image.width / bg_image.height
 
-def main(image, background_image):
+        new_height = image.height
+
+        # Resize the background image
+        resized_bg_image = bg_image.resize((int(bg_aspect_ratio * new_height), new_height))
+        
+        # Calculate coordinates to crop the background image to the size of the input image
+        left = (resized_bg_image.width - image.width) // 2
+        top = 0
+        right = left + image.width
+        bottom = image.height
+        
+        # Crop the background image
+        cropped_bg_image = resized_bg_image.crop((left, top, right, bottom))
+    else:
+        # Image is landscape, don't resize the background image
+        cropped_bg_image = bg_image
+
+    return cropped_bg_image
+    
+
+def call_change_bg(image, background_image):
+
+    background_image = resize_bg_image(image, background_image)
+    bg_replaced_image_nparray = change_bg(image, background_image)
+    bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
+    return bg_replaced_image
+
+def call_deepdream(image):
     IMG_WIDTH_DEEPDREAM = 1000
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
 
-    bg_replaced_image_nparray = change_bg(image, background_image)
-    bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
-    bg_replaced_image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
-
+    image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
     output_nparray = deepdream.change_to_deepdream(os.path.join(OUTPUT_DIR , 'bg_replaced_output.jpg'), IMG_WIDTH_DEEPDREAM, NUM_ITERS_DEEPDREAM, LR_DEEPDREAM)
 
     if output_nparray.dtype != np.uint8:
@@ -107,7 +136,7 @@ def main(image, background_image):
     output_nparray_uint8 = output_nparray.astype(np.uint8)
     res = Image.fromarray(output_nparray_uint8)
     res.save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
-    return bg_replaced_image, res
+    return res
 
 # if __name__ == "__main__":
 #     main(image, bg_image)

@@ -34,7 +34,13 @@ background_options = {
     "Greece": "Greece.jpg",
     "Switzerland": "Switzerland.JPG",
     "Denmark": "Denmark.jpg",
-    "Rome": "rome.jpg"
+    "Rome": "rome.jpg",
+    "Paris": "Paris.jpg",
+    "Hogwarts": "Hogwarts.jpg",
+    "Rune": "Rune.jpg",
+    "Cyberpunk": "Cyberpunk.jpg",
+    "SMU": "SMU.jpg",
+    "Cherry Blossoms": "Cherry-Blossoms.jpg",
 }
 
 # not in use until we have more than one style
@@ -46,6 +52,13 @@ style_options = {
 st.title("Transform your photo!")
 st.write("Upload an image to change its background and transform its style.")
 background_choice = st.radio("Choose a background:", list(background_options.keys()), horizontal=True)
+
+# load the selected background image
+background_image_path = os.path.join(BG_DIR, background_options[background_choice])
+background_image = Image.open(background_image_path)
+
+st.image(background_image, caption='Selected Background Image', use_column_width=True)
+
 style_choice = st.radio("Choose a style:", list(style_options.keys()), horizontal=True)
 
 uploaded_file = st.file_uploader("Choose an input image for background change and style transform.", type=["jpg", "jpeg", "png"])
@@ -57,13 +70,15 @@ if uploaded_file is not None:
     # display words / image
     st.image(input_image, caption='Uploaded Image', use_column_width=True)
     st.write("Image uploaded successfully!")
-
-    # load the selected background image
-    background_image_path = os.path.join(BG_DIR, background_options[background_choice])
-    background_image = Image.open(background_image_path)
     
     # run code
-    bg_replaced_img, final_img = run.main(input_image, background_image)
+    bg_replaced_img = run.call_change_bg(input_image, background_image)
+
+    # display bg image
+    st.image(bg_replaced_img, caption=f'Image set in {background_choice}')
+    img_byte_arr_bg = io.BytesIO()
+    bg_replaced_img.save(img_byte_arr_bg, format='PNG')
+    img_byte_arr_bg = img_byte_arr_bg.getvalue()
 
     # # test bg
     # bg_segment = run.change_bg(input_image, background_image)
@@ -71,15 +86,11 @@ if uploaded_file is not None:
     # final_img = Image.fromarray(output_nparray_uint8)
     
     # Convert images to bytes
+    final_img = run.call_deepdream(bg_replaced_img)
     img_byte_arr_final = io.BytesIO()
-    img_byte_arr_bg = io.BytesIO()
     final_img.save(img_byte_arr_final, format='PNG')
-    bg_replaced_img.save(img_byte_arr_bg, format='PNG')
     img_byte_arr_final = img_byte_arr_final.getvalue()
-    img_byte_arr_bg = img_byte_arr_bg.getvalue()
 
-    # display bg image
-    st.image(bg_replaced_img, caption=f'Image set in {background_choice}')
     # Add a download button for the final image
     st.download_button(
         label="Download Background Replaced Image",
