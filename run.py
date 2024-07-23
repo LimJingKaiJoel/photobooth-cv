@@ -8,6 +8,7 @@ import io
 import os
 from transformers.models.detr.feature_extraction_detr import rgb_to_id
 from pytorch_deepdream import deepdream
+# import streamlit as st
 
 OUTPUT_DIR = 'output/'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -26,7 +27,17 @@ model = model.to(device)
 # image = Image.open(os.path.join(INPUT_IMG_DIR, input_img))
 # bg_image = Image.open(os.path.join(INPUT_BG_DIR, input_bg))
 
-def change_bg(image, bg_image, model, feature_extractor):
+def resize(img):
+    DESIRED_RATIO = 640
+
+    width, height = img.size
+    bigger = width if width > height else height
+    divide_ratio = bigger / DESIRED_RATIO
+
+    img = img.resize((int(width/divide_ratio), int(height/divide_ratio)))
+    return img
+
+def change_bg(image, bg_image):
     # prepare image for the model
     inputs = feature_extractor(images=image, return_tensors="pt")
     inputs = inputs.to(device)
@@ -45,19 +56,27 @@ def change_bg(image, bg_image, model, feature_extractor):
     # retrieve the ids corresponding to each mask
     panoptic_seg_id = rgb_to_id(panoptic_seg)
 
-    # way of identifying bg: category id == 199
-    id_bg = -1
-    for x in result['segments_info']:
-        if x['category_id'] == 199:
-            id_bg = x['id']
+    print(result)
 
-    # seg_fg = (panoptic_seg_id != id_bg)
-    seg_bg = (panoptic_seg_id == id_bg)
+    # identify foreground as person object only
+    id_fg = []
+    categories_to_include = [1, 16, 17, 18, 26, 27, 28, 29, 30, 31, 32, 33, 35, 36, 37, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 75, 77, 84, 87, 88, 89, 90, 91] # edit based on what you want to stay in the foreground
+    for x in result['segments_info']:
+        if x['category_id'] in categories_to_include:
+            id_fg.append(x['id'])
+
+    seg_fg = np.isin(panoptic_seg_id, id_fg)
+    seg_bg = np.logical_not(np.isin(panoptic_seg_id, id_fg))
 
     bg_image = bg_image.resize((seg_bg.shape[1], seg_bg.shape[0]))
     image = image.resize((seg_bg.shape[1], seg_bg.shape[0]))
 
     image, bg_image = np.array(image), np.array(bg_image)
+ 
+    # # delete this after testing vvv
+    # image[seg_fg] = 0
+    # return image
+
     image[seg_bg] = bg_image[seg_bg]
 
     # if not os.path.exists(OUTPUT_DIR):
@@ -72,7 +91,7 @@ def main(image, background_image):
     NUM_ITERS_DEEPDREAM = 2
     LR_DEEPDREAM = 0.09
 
-    bg_replaced_image_nparray = change_bg(image, background_image, model, feature_extractor)
+    bg_replaced_image_nparray = change_bg(image, background_image)
     bg_replaced_image = Image.fromarray(bg_replaced_image_nparray)
     bg_replaced_image.save(os.path.join(OUTPUT_DIR, 'bg_replaced_output.jpg'))
 
@@ -88,7 +107,7 @@ def main(image, background_image):
     output_nparray_uint8 = output_nparray.astype(np.uint8)
     res = Image.fromarray(output_nparray_uint8)
     res.save(os.path.join(OUTPUT_DIR, 'final_output.jpg'))
-    return res
+    return bg_replaced_image, res
 
 # if __name__ == "__main__":
 #     main(image, bg_image)
