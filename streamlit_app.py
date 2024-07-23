@@ -23,6 +23,9 @@ import io
 #     unsafe_allow_html=True
 # )
 
+# with open("styles.css") as f:
+#     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
 BG_DIR = "background_images/"
 
 # add more if u want
@@ -33,10 +36,16 @@ background_options = {
     "Rome": "rome.jpg"
 }
 
+# not in use until we have more than one style
+style_options = {
+    "Deepdream" : "deepdream"
+}
+
 # title and description
-st.title("Image Background Change and Style Transform")
+st.title("Transform your photo!")
 st.write("Upload an image to change its background and transform its style.")
 background_choice = st.radio("Choose a background:", list(background_options.keys()), horizontal=True)
+style_choice = st.radio("Choose a style:", list(style_options.keys()), horizontal=True)
 
 uploaded_file = st.file_uploader("Choose an input image for background change and style transform.", type=["jpg", "jpeg", "png"])
 
