@@ -3,6 +3,7 @@ from PIL import Image
 import run
 import os
 import io
+import numpy as np
 
 # CSS 
 # st.markdown(
@@ -49,10 +50,9 @@ style_choice = st.radio("Choose a style:", list(style_options.keys()), horizonta
 
 uploaded_file = st.file_uploader("Choose an input image for background change and style transform.", type=["jpg", "jpeg", "png"])
 
-
 # handling the uploaded file
 if uploaded_file is not None:
-    input_image = Image.open(uploaded_file)
+    input_image = run.resize(Image.open(uploaded_file))
     
     # display words / image
     st.image(input_image, caption='Uploaded Image', use_column_width=True)
@@ -63,20 +63,38 @@ if uploaded_file is not None:
     background_image = Image.open(background_image_path)
     
     # run code
-    final_img = run.main(input_image, background_image)
+    bg_replaced_img, final_img = run.main(input_image, background_image)
+
+    # # test bg
+    # bg_segment = run.change_bg(input_image, background_image)
+    # output_nparray_uint8 = bg_segment.astype(np.uint8)
+    # final_img = Image.fromarray(output_nparray_uint8)
     
+    # Convert images to bytes
+    img_byte_arr_final = io.BytesIO()
+    img_byte_arr_bg = io.BytesIO()
+    final_img.save(img_byte_arr_final, format='PNG')
+    bg_replaced_img.save(img_byte_arr_bg, format='PNG')
+    img_byte_arr_final = img_byte_arr_final.getvalue()
+    img_byte_arr_bg = img_byte_arr_bg.getvalue()
+
+    # display bg image
+    st.image(bg_replaced_img, caption=f'Image set in {background_choice}')
+    # Add a download button for the final image
+    st.download_button(
+        label="Download Background Replaced Image",
+        data=img_byte_arr_bg,
+        file_name="bg_replaced_image.png",
+        mime="image/png"
+    )
+
     # display final image
     st.image(final_img, caption='Final Image', use_column_width=True)
 
-    # Convert final image to bytes
-    img_byte_arr = io.BytesIO()
-    final_img.save(img_byte_arr, format='PNG')
-    img_byte_arr = img_byte_arr.getvalue()
-    
     # Add a download button for the final image
     st.download_button(
         label="Download Final Image",
-        data=img_byte_arr,
+        data=img_byte_arr_final,
         file_name="final_image.png",
         mime="image/png"
     )
