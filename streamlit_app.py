@@ -41,6 +41,10 @@ background_options = {
     "Cyberpunk": "Cyberpunk.jpg",
     "SMU": "SMU.jpg",
     "Cherry Blossoms": "Cherry-Blossoms.jpg",
+    "SMUBIA1": "SMUBIA1.jpg",
+    "SMUBIA2": "SMUBIA2.jpg",
+    "SMUBIA3": "SMUBIA3.jpg",
+    "SMUBIA4": "SMUBIA4.jpg",
 }
 
 # not in use until we have more than one style
