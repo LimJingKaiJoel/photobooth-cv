@@ -51,13 +51,10 @@ Experimenting with these models was a great learning experience. We are very tha
 
 ### More Results
 
-TODO: show 3-5 sample images and outputs, in the same format as the topmost introduction figure
+![Additional figures demonstrating a variety of use cases with more complicated backgrounds](assets/extra_figures.png)
 
 ### Conclusion
-TODO: Remove this section?
-
-### Learning Points
-TODO: Remove this section?
+This project was a fun and quick exploration of using residual neural networks, detection transformers, and DeepDream (which we deeply love!) for background replacement and style transformation. Completed over the course of just 1-2 days, the goal was to create something interesting to showcase at our university’s CCA fair and other events. Despite limitations of time and computational resources, we had a lot of fun making this simple Streamlit web app and exploring the new state-of-the-art image segmentation models!
 
 ### Future Work
 
